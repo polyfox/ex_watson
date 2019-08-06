@@ -3,6 +3,7 @@ defmodule ExWatson.HTTP.Client do
   Intermediate module for handle HTTP requests to IBM Watson
   """
   alias HTTPoison.Response
+  import ExWatson.Util.Parameters
 
   @type options :: [
     {:version, String.t() | nil},
@@ -17,19 +18,30 @@ defmodule ExWatson.HTTP.Client do
   @spec request(atom, String.t(), map | Keyword.t(), map | list, binary | nil, Keyword.t() | map) ::
           HTTPoison.Response.t()
   def request(method, url, query_params, headers, body, options) do
-    options = Enum.into(options, %{})
-    query_params = prepare_query_params(query_params, options)
-    headers = prepare_headers(headers, options)
-    url = prepare_url(url, options)
+    with {:ok, data} <- required_fields(options, [:endpoint]) do
+      options = Enum.into(options, %{})
+      query_params = prepare_query_params(query_params, options)
+      headers = prepare_headers(headers, options)
+      url = prepare_url(url, options)
 
-    request_options = [params: query_params]
+      request_options = [params: query_params]
 
-    case HTTPoison.request(method, url, body, headers, request_options) do
-      {:ok, %Response{body: body} = response} ->
-        {:ok, response, Jason.decode!(body)}
+      case HTTPoison.request(method, url, body, headers, request_options) do
+        {:ok, %Response{status_code: 400} = response} ->
+          {:error, {:invalid_request, response}}
 
-      {:error, _} = err ->
-        err
+        {:ok, %Response{status_code: 401} = response} ->
+          {:error, {:unauthorized, response}}
+
+        {:ok, %Response{status_code: 404} = response} ->
+          {:error, {:not_found, response}}
+
+        {:ok, %Response{body: body} = response} ->
+          {:ok, response, Jason.decode!(body)}
+
+        {:error, _} = err ->
+          err
+      end
     end
   end
 

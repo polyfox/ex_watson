@@ -7,6 +7,8 @@ defmodule ExWatson.V2.Generic do
 
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
 
@@ -29,6 +31,8 @@ defmodule ExWatson.V2.MessageInputOptions do
     return_context: boolean
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
       debug: data["debug"],
@@ -43,6 +47,8 @@ defmodule ExWatson.V2.MessageInput do
   alias ExWatson.V2.{MessageInputOptions,
                      RuntimeIntent,
                      RuntimeEntity}
+
+  import ExWatson.Util.Collections
 
   defstruct [
     :message_type,
@@ -62,13 +68,15 @@ defmodule ExWatson.V2.MessageInput do
     suggestion_id: String.t(),
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
       message_type: data["message_type"],
       text: data["text"],
       options: MessageInputOptions.from_map(data["options"]),
-      intents: Enum.map(data["intents"], &RuntimeIntent.from_map/1),
-      entities: Enum.map(data["entities"], &RuntimeEntity.from_map/1),
+      intents: maybe_map(data["intents"], &RuntimeIntent.from_map/1),
+      entities: maybe_map(data["entities"], &RuntimeEntity.from_map/1),
       suggestion_id: data["suggestion_id"]
     }
   end
@@ -84,6 +92,8 @@ defmodule ExWatson.V2.DialogNodeOutputOptionsElementValue do
   @type t :: %__MODULE__{
     input: MessageInput.t()
   }
+
+  def from_map(nil), do: nil
 
   def from_map(data) when is_map(data) do
     %__MODULE__{
@@ -105,6 +115,8 @@ defmodule ExWatson.V2.DialogNodeOutputOptionsElement do
     value: DialogNodeOutputOptionsElementValue.t()
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
       label: data["label"],
@@ -123,6 +135,8 @@ defmodule ExWatson.V2.DialogSuggestionValue do
   @type t :: %__MODULE__{
     input: MessageInput.t()
   }
+
+  def from_map(nil), do: nil
 
   def from_map(data) when is_map(data) do
     %__MODULE__{
@@ -146,6 +160,8 @@ defmodule ExWatson.V2.DialogSuggestion do
     output: map
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
       label: data["label"],
@@ -165,6 +181,8 @@ defmodule ExWatson.V2.SearchResultMetadata do
     confidence: float,
     score: float,
   }
+
+  def from_map(nil), do: nil
 
   def from_map(data) when is_map(data) do
     %__MODULE__{
@@ -188,6 +206,8 @@ defmodule ExWatson.V2.SearchResultHighlight do
     url: [String.t()],
     other: [String.t()]
   }
+
+  def from_map(nil), do: nil
 
   def from_map(data) when is_map(data) do
     %__MODULE__{
@@ -222,6 +242,8 @@ defmodule ExWatson.V2.SearchResult do
     highlight: SearchResultHighlight.t(),
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
       id: data["id"],
@@ -236,6 +258,8 @@ end
 
 defmodule ExWatson.V2.DialogRuntimeResponseGeneric do
   alias ExWatson.V2.{DialogNodeOutputOptionsElement, DialogSuggestion, SearchResult}
+
+  import ExWatson.Util.Collections
 
   defstruct [
     :response_type,
@@ -271,6 +295,8 @@ defmodule ExWatson.V2.DialogRuntimeResponseGeneric do
     results: [SearchResult.t()]
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
       response_type: data["response_type"],
@@ -281,12 +307,12 @@ defmodule ExWatson.V2.DialogRuntimeResponseGeneric do
       title: data["title"],
       description: data["description"],
       preference: data["preference"],
-      options: Enum.map(data["options"], &DialogNodeOutputOptionsElement.from_map/1),
+      options: maybe_map(data["options"], &DialogNodeOutputOptionsElement.from_map/1),
       message_to_human_agent: data["message_to_human_agent"],
       topic: data["topic"],
-      suggestions: Enum.map(data["suggestions"], &DialogSuggestion.from_map/1),
+      suggestions: maybe_map(data["suggestions"], &DialogSuggestion.from_map/1),
       header: data["header"],
-      results: Enum.map(data["results"], &SearchResult.from_map/1)
+      results: maybe_map(data["results"], &SearchResult.from_map/1)
     }
   end
 end
@@ -301,6 +327,8 @@ defmodule ExWatson.V2.RuntimeIntent do
     intent: String.t(),
     confidence: float,
   }
+
+  def from_map(nil), do: nil
 
   def from_map(data) when is_map(data) do
     %__MODULE__{
@@ -318,6 +346,8 @@ defmodule ExWatson.V2.RuntimeEntityRole do
   @type t :: %__MODULE__{
     type: String.t()
   }
+
+  def from_map(nil), do: nil
 
   def from_map(data) when is_map(data) do
     %__MODULE__{
@@ -337,6 +367,8 @@ defmodule ExWatson.V2.RuntimeEntityAlternative do
     confidence: number
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
       value: data["value"],
@@ -347,6 +379,8 @@ end
 
 defmodule ExWatson.V2.RuntimeEntity do
   alias ExWatson.V2.{RuntimeEntityRole, RuntimeEntityAlternative}
+
+  import ExWatson.Util.Collections
 
   defstruct [
     :entity,
@@ -404,6 +438,8 @@ defmodule ExWatson.V2.RuntimeEntity do
     role: String.t(),
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
       entity: data["entity"],
@@ -411,9 +447,9 @@ defmodule ExWatson.V2.RuntimeEntity do
       value: data["value"],
       confidence: data["confidence"],
       metadata: data["metadata"],
-      groups: Enum.map(data["groups"], &(%{group: &1["group"], location: &1["location"]})),
+      groups: maybe_map(data["groups"], &(%{group: &1["group"], location: &1["location"]})),
       interpretation: interpretation_from_map(data["interpretation"]),
-      alternatives: Enum.map(data["alternatives"], &RuntimeEntityAlternative.from_map/1),
+      alternatives: maybe_map(data["alternatives"], &RuntimeEntityAlternative.from_map/1),
       role: RuntimeEntityRole.from_map(data["role"]),
     }
   end
@@ -467,6 +503,8 @@ defmodule ExWatson.V2.DialogNodeAction do
     credentials: String.t(),
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
       name: data["name"],
@@ -493,6 +531,8 @@ defmodule ExWatson.V2.MessageOutputDebug do
     branch_exited_reason: String.t(),
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
       nodes_visited: data["nodes_visited"],
@@ -509,6 +549,8 @@ defmodule ExWatson.V2.MessageOutput do
                      RuntimeIntent,
                      RuntimeEntity,
                      DialogNodeAction}
+
+  import ExWatson.Util.Collections
 
   defstruct [
     :generic,
@@ -528,12 +570,14 @@ defmodule ExWatson.V2.MessageOutput do
     user_defined: String.t()
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
-      generic: Enum.map(data["generic"], &DialogRuntimeResponseGeneric.from_map/1),
-      intents: Enum.map(data["intents"], &RuntimeIntent.from_map/1),
-      entities: Enum.map(data["entities"], &RuntimeEntity.from_map/1),
-      actions: Enum.map(data["actions"], &DialogNodeAction.from_map/1),
+      generic: maybe_map(data["generic"], &DialogRuntimeResponseGeneric.from_map/1),
+      intents: maybe_map(data["intents"], &RuntimeIntent.from_map/1),
+      entities: maybe_map(data["entities"], &RuntimeEntity.from_map/1),
+      actions: maybe_map(data["actions"], &DialogNodeAction.from_map/1),
       debug: MessageOutputDebug.from_map(data["debug"]),
       user_defined: data["user_defined"],
     }
@@ -557,6 +601,8 @@ defmodule ExWatson.V2.MessageContextGlobalSystem do
     reference_time: String.t()
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
       timezone: data["timezone"],
@@ -577,6 +623,8 @@ defmodule ExWatson.V2.MessageContextGlobal do
     system: ExWatson.V2.MessageContextGlobalSystem.t(),
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
       system: ExWatson.V2.MessageContextGlobalSystem.from_map(data["system"]),
@@ -593,6 +641,8 @@ defmodule ExWatson.V2.MessageContextSkill do
     # not too clear, could be an array or something
     user_defined: String.t()
   }
+
+  def from_map(nil), do: nil
 
   def from_map(data) when is_map(data) do
     %__MODULE__{
@@ -614,6 +664,8 @@ defmodule ExWatson.V2.MessageContext do
     skills: %{String.t() => MessageContextSkill.t()}
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
       global: ExWatson.V2.MessageContextGlobal.from_map(data["global"]),
@@ -634,6 +686,8 @@ defmodule ExWatson.V2.Message do
     output: ExWatson.V2.MessageOutput.t(),
     context: ExWatson.V2.MessageContext.t(),
   }
+
+  def from_map(nil), do: nil
 
   def from_map(data) when is_map(data) do
     %__MODULE__{

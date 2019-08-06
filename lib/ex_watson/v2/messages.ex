@@ -2,6 +2,7 @@ defmodule ExWatson.V2.Messages do
   alias HTTPoison.Response
   alias ExWatson.HTTP.Client, as: HTTP
   alias ExWatson.V2.Message
+  import ExWatson.Util.Parameters
 
   @type message_input_options :: %{
     debug: boolean,
@@ -82,16 +83,11 @@ defmodule ExWatson.V2.Messages do
   @spec send_message(message_input, options) ::
           {:ok, Message.t()} | {:error, {:invalid_request, term} | term}
   def send_message(message, options) do
-    case HTTP.post("/assistants/#{options[:assistant_id]}/sessions/#{options[:session_id]}/message",
-                   [], [], message, options) do
-      {:ok, %Response{status_code: 200}, data} ->
-        {:ok, Message.from_map(data)}
-
-      {:ok, %Response{status_code: 400}, data} ->
-        {:error, {:invalid_request, data}}
-
-      {:error, _} = err ->
-        err
+    with {:ok, options} <- required_fields(options, [:assistant_id, :session_id]),
+         {:ok, %Response{status_code: 200}, data} <- HTTP.post(
+            "/v2/assistants/#{options[:assistant_id]}/sessions/#{options[:session_id]}/message",
+            [], [], message, options) do
+      {:ok, Message.from_map(data)}
     end
   end
 end
