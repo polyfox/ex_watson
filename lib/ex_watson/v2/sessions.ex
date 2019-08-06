@@ -4,26 +4,45 @@ defmodule ExWatson.V2.Sessions do
 
   See https://cloud.ibm.com/apidocs/assistant-v2#create-a-session
   """
+  alias HTTPoison.Response
+  alias ExWatson.HTTP.Client, as: HTTP
+  alias ExWatson.V2.Session
+
   @type create_options :: [
-    {:assistant_id, String.t()},
-    {:version, String.t()}
-  ]
+    {:assistant_id, String.t()}
+  ] | HTTP.options()
 
   @type delete_options :: [
-    {:assistant_id, String.t()},
-    {:session_id, String.t()},
-    {:version, String.t()}
-  ]
+    {:assistant_id, String.t()} |
+    {:session_id, String.t()}
+  ] | HTTP.options()
 
-  @default_version "2019-02-28"
-
-  @spec create_session(create_options) :: ExWatson.V2.Session.t()
+  @spec create_session(create_options) ::
+          {:ok, ExWatson.V2.Session.t()} | {:ok, {:invalid_request, term} | term}
   def create_session(options) do
-    ExWatson.HTTP.Client.post("/v2/assistants/#{options[:assistant_id]}/sessions")
+    case HTTP.post("/v2/assistants/#{options[:assistant_id]}/sessions", [], [], nil, options) do
+      {:ok, %Response{status_code: 201}, data} ->
+        {:ok, Session.from_map(data)}
+
+      {:ok, %Response{status_code: 400}, data} ->
+        {:error, {:invalid_request, data}}
+
+      {:error, _} = err ->
+        err
+    end
   end
 
-  @spec create_session(delete_options) :: :ok
+  @spec delete_session(delete_options) :: :ok | {:error, {:invalid_request, term} | term}
   def delete_session(options) do
-    ExWatson.HTTP.Client.delete("/v2/assistants/#{options[:assistant_id]}/sessions/#{options[:session_id]}")
+    case HTTP.delete("/v2/assistants/#{options[:assistant_id]}/sessions/#{options[:session_id]}", [], [], options) do
+      {:ok, %Response{status_code: 200}, _data} ->
+        :ok
+
+      {:ok, %Response{status_code: 400}, data} ->
+        {:error, {:invalid_request, data}}
+
+      {:error, _} = err ->
+        err
+    end
   end
 end

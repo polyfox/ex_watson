@@ -2,27 +2,62 @@ defmodule ExWatson.HTTP.Client do
   @moduledoc """
   Intermediate module for handle HTTP requests to IBM Watson
   """
-  def request(method, url, query_params, headers, body, options) do
+  alias HTTPoison.Response
 
+  @type options :: [
+    {:version, String.t() | nil},
+    {:endpoint, String.t() | nil},
+    {:api_key, String.t() | nil},
+    {:basic_auth, {String.t(), String.t()} | nil}
+  ]
+
+  # Yes I am aware that HTTPoison.Base exists, but I need to manipulate various
+  # aspects of the request using user supplied options.
+
+  @spec request(atom, String.t(), map | Keyword.t(), map | list, binary | nil, Keyword.t() | map) ::
+          HTTPoison.Response.t()
+  def request(method, url, query_params, headers, body, options) do
+    options = Enum.into(options, %{})
+    query_params = prepare_query_params(query_params, options)
+    headers = prepare_headers(headers, options)
+    url = prepare_url(url, options)
+
+    request_options = [params: query_params]
+
+    case HTTPoison.request(method, url, body, headers, request_options) do
+      {:ok, %Response{body: body} = response} ->
+        {:ok, response, Jason.decode!(body)}
+
+      {:error, _} = err ->
+        err
+    end
   end
 
   def get(url, query_params, headers, options) do
-    query_params = prepare_query_params(query_params, options)
-    headers = prepare_headers(headers, options)
+    request(:get, url, query_params, headers, nil, options)
   end
 
   def post(url, query_params, headers, body, options) do
+    request(:post, url, query_params, headers, Jason.encode!(body), options)
   end
 
   def delete(url, query_params, headers, options) do
+    request(:delete, url, query_params, headers, nil, options)
   end
 
-  defp prepapre_query_params(query_params, options) when is_list(query_params) do
-    [{"version", options[:version]} | query_params]
+  defp prepare_url(path_url, options) do
+    endpoint = options[:endpoint] || Application.get_env(:ex_watson, :default_endpoint)
+
+    endpoint <> path_url
   end
 
-  defp prepapre_query_params(query_params, options) when is_map(query_params) do
-    prepapre_query_params(Map.to_list(query_params), options)
+  defp prepare_query_params(query_params, options) when is_list(query_params) do
+    version = options[:version] || Application.get_env(:ex_watson, :default_version)
+    [{"version", version} | query_params]
+  end
+
+  defp prepare_query_params(query_params, options) when is_map(query_params) do
+    prepare_query_params(Map.to_list(query_params), options)
   end
 
   defp prepare_headers(headers, options) do
