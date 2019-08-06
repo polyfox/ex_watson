@@ -63,6 +63,30 @@ defmodule ExWatson.HTTP.Client do
   defp prepare_headers(headers, options) do
     headers = Enum.into(headers, %{})
 
+    # normalize headers
+    headers =
+      Enum.reduce(headers, %{}, fn
+        {key, value}, acc when is_binary(key) ->
+          Map.put(acc, String.downcase(key), value)
+
+        {key, value}, acc when is_atom(key) ->
+          key =
+            key
+            |> Atom.to_string()
+            |> String.downcase()
+            |> String.replace("_", "-")
+
+          Map.put(acc, key, value)
+      end)
+
+    headers =
+      Map.merge(%{
+        "accept" => "application/json",
+        "content-type" => "application/json",
+        "user-agent" => "ex_watson/1.0.0 (Elixir Watson Client)"
+      }, headers)
+
+    # add Bearer Authorization if needed
     headers =
       if options[:api_key] do
         Map.put(headers, "authorization", "Bearer #{options[:api_key]}")
@@ -70,6 +94,7 @@ defmodule ExWatson.HTTP.Client do
         headers
       end
 
+    # add Basic Authorization if needed
     headers =
       if options[:basic_auth] do
         {username, password} = options[:basic_auth]
