@@ -55,6 +55,8 @@ end
 defmodule ExWatson.V1.RuntimeEntity do
   alias ExWatson.V1.CaptureGroup
 
+  import ExWatson.Util.Collections
+
   defstruct [
     :entity,
     :location,
@@ -73,6 +75,8 @@ defmodule ExWatson.V1.RuntimeEntity do
     groups: [CaptureGroup.t()],
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
       entity: data["entity"],
@@ -80,7 +84,7 @@ defmodule ExWatson.V1.RuntimeEntity do
       value: data["value"],
       confidence: data["confidence"],
       metadata: data["metadata"],
-      groups: Enum.map(data["groups"], &CaptureGroup.from_map/1)
+      groups: maybe_map(data["groups"], &CaptureGroup.from_map/1)
     }
   end
 end
@@ -95,6 +99,8 @@ defmodule ExWatson.V1.MessageContextMetadata do
     deployment: String.t(),
     user_id: String.t()
   }
+
+  def from_map(nil), do: nil
 
   def from_map(data) when is_map(data) do
     %__MODULE__{
@@ -119,6 +125,8 @@ defmodule ExWatson.V1.Context do
     metadata: MessageContextMetadata.t(),
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
       conversation_id: data["conversation_id"],
@@ -139,6 +147,8 @@ defmodule ExWatson.V1.LogMessage do
     msg: String.t()
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
       level: data["level"],
@@ -149,6 +159,8 @@ end
 
 defmodule ExWatson.V1.DialogNodeOutputOptionsElementValue do
   alias ExWatson.V1.{MessageInput, RuntimeIntent, RuntimeEntity}
+
+  import ExWatson.Util.Collections
 
   defstruct [
     :input,
@@ -162,11 +174,13 @@ defmodule ExWatson.V1.DialogNodeOutputOptionsElementValue do
     entities: [RuntimeEntity.t()]
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
       input: MessageInput.from_map(data["input"]),
-      intents: Enum.map(data["intents"], &RuntimeIntent.from_map/1),
-      entities: Enum.map(data["entities"], &RuntimeEntity.from_map/1)
+      intents: maybe_map(data["intents"], &RuntimeIntent.from_map/1),
+      entities: maybe_map(data["entities"], &RuntimeEntity.from_map/1)
     }
   end
 end
@@ -184,6 +198,8 @@ defmodule ExWatson.V1.DialogNodeOutputOptionsElement do
     value: DialogNodeOutputOptionsElementValue.t()
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
       label: data["label"],
@@ -194,6 +210,8 @@ end
 
 defmodule ExWatson.V1.DialogSuggestionValue do
   alias ExWatson.V1.{MessageInput, RuntimeIntent, RuntimeEntity}
+
+  import ExWatson.Util.Collections
 
   defstruct [
     :input,
@@ -207,11 +225,13 @@ defmodule ExWatson.V1.DialogSuggestionValue do
     entities: [RuntimeEntity.t()]
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
       input: MessageInput.from_map(data["input"]),
-      intents: Enum.map(data["intents"], &RuntimeIntent.from_map/1),
-      entities: Enum.map(data["entities"], &RuntimeEntity.from_map/1)
+      intents: maybe_map(data["intents"], &RuntimeIntent.from_map/1),
+      entities: maybe_map(data["entities"], &RuntimeEntity.from_map/1)
     }
   end
 end
@@ -233,6 +253,8 @@ defmodule ExWatson.V1.DialogSuggestion do
     dialog_node: String.t()
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
       label: data["label"],
@@ -245,6 +267,8 @@ end
 
 defmodule ExWatson.V1.DialogRuntimeResponseGeneric do
   alias ExWatson.V1.{DialogNodeOutputOptionsElement, DialogSuggestion}
+
+  import ExWatson.Util.Collections
 
   defstruct [
     :response_type,
@@ -278,6 +302,8 @@ defmodule ExWatson.V1.DialogRuntimeResponseGeneric do
     suggestions: [DialogSuggestion.t()],
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
       response_type: data["response_type"],
@@ -288,17 +314,20 @@ defmodule ExWatson.V1.DialogRuntimeResponseGeneric do
       title: data["title"],
       description: data["description"],
       preference: data["preference"],
-      options: Enum.map(data["options"], &DialogNodeOutputOptionsElement.from_map/1),
+      options: maybe_map(data["options"], &DialogNodeOutputOptionsElement.from_map/1),
       message_to_human_agent: data["message_to_human_agent"],
       topic: data["topic"],
       dialog_node: data["dialog_node"],
-      suggestions: Enum.map(data["suggestions"], &DialogSuggestion.from_map/1),
+      suggestions: maybe_map(data["suggestions"], &DialogSuggestion.from_map/1),
     }
   end
 end
 
 defmodule ExWatson.V1.OutputData do
   alias ExWatson.V1.{LogMessage, DialogRuntimeResponseGeneric}
+
+  import ExWatson.Util.Collections
+
   defstruct [
     :log_messages,
     :text,
@@ -319,13 +348,15 @@ defmodule ExWatson.V1.OutputData do
     }]
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
-      log_messages: Enum.map(data["log_messages"], &LogMessage.from_map/1),
+      log_messages: maybe_map(data["log_messages"], &LogMessage.from_map/1),
       text: data["text"],
-      generic: Enum.map(data["generic"], &DialogRuntimeResponseGeneric.from_map/1),
+      generic: maybe_map(data["generic"], &DialogRuntimeResponseGeneric.from_map/1),
       nodes_visited: data["nodes_visited"],
-      nodes_visited_details: Enum.map(data["nodes_visited_details"], fn data ->
+      nodes_visited_details: maybe_map(data["nodes_visited_details"], fn data ->
         %{
           dialog_node: data["dialog_node"],
           title: data["title"],
@@ -353,6 +384,8 @@ defmodule ExWatson.V1.DialogNodeAction do
     credentials: String.t(),
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) when is_map(data) do
     %__MODULE__{
       name: data["name"],
@@ -366,6 +399,8 @@ end
 
 defmodule ExWatson.V1.Message do
   alias ExWatson.V1.{MessageInput, RuntimeIntent, RuntimeEntity, Context, OutputData, DialogNodeAction}
+
+  import ExWatson.Util.Collections
 
   defstruct [
     :input,
@@ -387,15 +422,18 @@ defmodule ExWatson.V1.Message do
     actions: [DialogNodeAction.t()]
   }
 
+  def from_map(nil), do: nil
+
   def from_map(data) do
     %__MODULE__{
       input: MessageInput.from_map(data["input"]),
-      intents: Enum.map(data["intents"], &RuntimeIntent.from_map/1),
-      entities: Enum.map(data["entities"], &RuntimeEntity.from_map/1),
-      context: Context.from_map(data["context"]),
+      intents: maybe_map(data["intents"], &RuntimeIntent.from_map/1),
+      entities: maybe_map(data["entities"], &RuntimeEntity.from_map/1),
+      #context: Context.from_map(data["context"]),
+      context: data["context"],
       output: OutputData.from_map(data["output"]),
       alternate_intents: data["alternate_intents"],
-      actions: Enum.map(data["actions"], &DialogNodeAction.from_map/1)
+      actions: maybe_map(data["actions"], &DialogNodeAction.from_map/1)
     }
   end
 end
